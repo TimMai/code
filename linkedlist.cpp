@@ -12,12 +12,25 @@ struct node
 	node * last;
 };
 
-char menu();
+//Menu to hold choices
+char menu();	
+
+//Initialize 32 nodes with "Free" spaces
 void initialize(node *&head, node *&last);
+
+//Create a new linked list
 void newNode(node *&head, node *&last, std::string name);
+
+//Insert a node at the end of list
 void insert(node *&head, node *&last, std::string name);
+
+//Chance the node data (WIP)
 void insert2(node *&head, node *&last, std::string name);
+
+//Remove a node at end of list
 void remove(node *&head, node *&last);
+
+//Display linked list
 void showList(node *current);
 
 
@@ -171,7 +184,6 @@ void insert2(node *&head, node *&last, std::string name)
 		}
 		else
 		{
-			//Infinite while loop after creating spot for one program
 			while (rerun)
 			{
 				node *temp = head;
