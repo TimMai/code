@@ -12,8 +12,11 @@ struct node
 	node * last;
 };
 
-//Menu to hold choices
-char menu();	
+//Menu to display choices
+int menu();	
+
+//Check to see if user made a valid selection in the menu
+int decisionVerification(std::string decision);
 
 //Initialize 32 nodes with "Free" spaces
 void initialize(node *&head, node *&last);
@@ -30,9 +33,23 @@ void insert2(node *&head, node *&last, std::string name);
 //Remove a node at end of list
 void remove(node *&head, node *&last);
 
+//Remove node of specified name
+void remove2(node *&head, std::string name);
+
+//Checks to see if linked list is empty
+bool isEmpty(node *&head);
+
+//Check how many fragments exist
+void fragmentation(node *&head);
+
 //Display linked list
 void showList(node *current);
 
+//Check if there are duplicates of a program
+bool duplicateError(node *&head, std::string name);
+
+//Check if there is enough space
+bool spaceError(node *&head, int pages);
 
 
 int main(int argc, char ** argv)
@@ -57,7 +74,7 @@ int main(int argc, char ** argv)
 
 		switch (choice)
 		{
-		case '1': 
+		case 1: 
 			
 			std::cout << "Program name - ";
 			while (rerun)
@@ -75,60 +92,110 @@ int main(int argc, char ** argv)
 				}
 			}
 
-			std::cout << " Program size (KB) - ";
+			std::cout << "Program size (KB) - ";
 			std::cin >> size;
+			std::cout << std::endl;
+			
 
-			if (size > 128)
-			{
-				std::cout << "Error - not enough memory for Program " << name << std::endl;
-				break;
-			}
+			if (duplicateError(head, name))
+				std::cout << "Error - Program " << name << " already running. \n";
 
-			else 
+			else
 			{
-				for (int i = 0; i < 32; i++)
+				for (int i = 0; i < 64; i++)
 				{
 					size -= 4;
 					if (size <= 0)
 					{
 						pages = i + 1;
-						std::cout << "Pages used: " << pages << std::endl;
+						if (spaceError(head, pages))
+							std::cout << "Error - not enough memory for Program " << name << std::endl;
+
 						break;
 					}
 				}
 
-				for (int i = 0; i < pages; i++)
-					insert2(head, last, name);
-				
-				break;
-			}
+				if (!spaceError(head, pages))
+				{
+					for (int i = 0; i < pages; i++)
+						insert2(head, last, name);
 
-		case '2': 
-			remove(head, last);
+					std::cout << "Program " << name << " added successfully: " << pages << " page(s) used. \n";
+				}
+			}
+			
+			break;
+		
+
+		case 2: 
+			std::cout << "Program name - ";
+			std::cin >> name;
+			remove2(head, name);
 			break;
 
-		case '3': 
+		case 3:
+			fragmentation(head);
+			break;
+
+		case 4: 
 			showList(head);
 			break;
 
 		}
 
-	} while (choice != '4');		//Exit program if 4 is selected
+	} while (choice != 5);		//Exit program if 4 is selected
+
     return 0;
 }
 
-char menu()
+int menu()
 {
-	char choice;	
+	std::string decision;	
+	int choice;
+	bool rerun = true;
 
-	std::cout << "Menu \n";
-	std::cout << "1. Add program \n";
-	std::cout << "2. Remove an item. \n";
-	std::cout << "3. Show the list. \n";
-	std::cout << "4. Exit. \n";
+	while (rerun)
+	{
+		std::cout << std::endl;
+		std::cout << "1. Add program \n";
+		std::cout << "2. Kill program \n";
+		std::cout << "3. Fragmentation \n";
+		std::cout << "4. Print memory \n";
+		std::cout << "5. Exit \n\n";
 
-	std::cin >> choice;
-	return choice;
+		std::cout << "choice - ";
+		std::cin >> decision;
+
+		choice = decisionVerification(decision);
+
+		if (choice == 6)
+			std::cout << "Invalid selection. Try again. \n";
+
+		else
+			return choice;
+	}
+}
+
+int decisionVerification(std::string decision)
+{
+	if (decision == "1")
+		return 1;
+
+	else if (decision == "2")
+		return 2;
+
+	else if (decision == "3")
+		return 3;
+
+	else if (decision == "4")
+		return 4;
+
+	else if (decision == "5")
+		return 5;
+
+	else
+		return 6;
+
 }
 
 //Initialize linked list with 32 nodes
@@ -155,10 +222,10 @@ void newNode(node *&head, node *&last, std::string name)
 
 void insert(node *&head, node *&last, std::string name)
 {
-	if (head == NULL)	//If there is no linked list initially, create one
+	if (head == NULL)				//If there is no linked list initially, create one
 		newNode(head, last, name);
 
-	else				//Else add on to end of the list
+	else							//Else add on to end of the list
 	{
 		node *temp = new node;		//Create temporary node
 		temp->name = name;			//Temp node holds the program name
@@ -173,39 +240,23 @@ void insert2(node *&head, node *&last, std::string name)
 {
 	bool rerun = true;
 
-	if (head == NULL)
-		newNode(head, last, name);
+	
+	if (head->name == "Free")
+	{
+		head->name = name;
+	}
 
 	else
 	{
-		if (head->name == "Free")
-		{
-			head->name = name;
-		}
-		else
-		{
-			while (rerun)
-			{
-				node *temp = head;
-				if (temp->name != "Free")
-					temp = temp->next;
-				
+		node *temp = head;
 
-				else
-				{
-					//node *temp = new node;
-					//temp = head;
-					temp->name = name;
-					//temp->next = head->next;
-					//head->next = temp;
-					//head = temp;
-					//last = last->next;
-					//last = last;
-					break;
-				}
-			}
-		}
+		while (temp->name != "Free")
+			temp = temp->next;
+
+		temp->name = name;
+
 	}
+
 }
 
 void remove(node *&head, node *&last)
@@ -213,36 +264,115 @@ void remove(node *&head, node *&last)
 	if (head == NULL)
 		std::cout << "The list is already empty" << std::endl;
 
-	else if (head == last)
+	/*else if (head == last)
 	{
 		delete head;
 		head = NULL;
 		last = NULL;
-	}
+	}*/
 
 	else
 	{
 		node *temp = head;
-		head = head->next;
+		temp->name = "Free";
+	}
+}
+
+void remove2(node *&head, std::string name)
+{
+	node *temp = head;
+	for (int i = 0; i < 64; i++)
+	{
+		if(temp->name != name)				//If the node does not contain the program
+			temp = temp->next;				//Continue onto the next node
+
+		else if(temp->name == name)			//If the node contains the program
+			temp->name = "Free";			//Make it free
+
+		if (temp->next == NULL)				//If the loop reaches the end of the linked list
+		{
+			if (temp->name == name)			//If the last node contains the program
+				temp->name = "Free";		//Make last node free
+
+			break;
+		}
+	}
+
+}
+
+bool isEmpty(node *& head)
+{
+	node *temp = head;
+	int i = 0;
+
+	while (temp->next != NULL)
+	{
+		if (temp->name == "Free")
+			i++;
+
+		temp = temp->next;
+	}
+	if (temp->next == NULL && temp->name == "Free")
+		i++;
+
+	if (i = 32)
+		return true;
+
+	else
+		return false;
+
+}
+
+void fragmentation(node *& head)
+{
+	if (isEmpty(head))
+		std::cout << "There are zero fragments. \n";
+
+	else
+	{
+		int i = 0;
+		node *temp = head;
+
+		while (temp->next != NULL)
+		{
+			/*if (temp->name != "Free")
+			{
+				while (temp->next->name != "Free")
+				{
+					temp = temp->next;
+					//if (temp->name == "Free")
+						//i++;
+				}
+			}
+
+			temp = temp->next;*/
+			while (temp->name != "Free")
+			{
+				temp = temp->next;
+			}
+		}
+
+		std::cout << "There are " << i << " fragment(s). \n";
 	}
 }
 
 void showList(node *current)
 {
-	//if (current == NULL)
-		//std::cout << "The list is empty." << std::endl;
+	if (current == NULL)		//Current node is empty, then the list is empty -- but this condition will not be met in this program
+		std::cout << "The list is empty." << std::endl;
 
 	node *temp = current;
-	std::cout << "The list contains: " << std::endl;
+	std::cout << std::endl;
+
 	for (int i = 0; i < 4; i++)
 	{
 		for (int j = 0; j < 8; j++)
 		{
 			if (current == NULL)
 			{
-				break;
-				//std::cout << "Free \t";
+				std::cout << "Free \t";
 				//current = current->next
+				break;
 			}
 			else
 			{
@@ -252,4 +382,59 @@ void showList(node *current)
 		}
 		std::cout << std::endl;
 	}
+	std::cout << std::endl;
+}
+
+bool duplicateError(node *&head, std::string name)
+{
+	node *temp = head;
+
+	while(temp->next != NULL) 
+	{
+		if (temp->name == name)
+			return true;
+
+		else
+			temp = temp->next;
+
+	}
+
+	return false;
+}
+
+bool spaceError(node *&head, int pages)
+{
+	node *temp = head;
+	int i = 0;			//Hold the number of free spaces available
+
+	while (temp->next != NULL)
+	{
+		if (temp->name != "Free")
+			temp = temp->next;
+
+		else
+		{
+			//if (temp->next->next == NULL)	//If node after the next one points to null
+				//i++;
+
+			if (i == pages)
+				return false;
+
+			i++;
+
+			temp = temp->next;
+		}
+
+		if (i == pages)
+			return false;
+		
+	}
+
+	if (temp->next == NULL && temp->name == "Free")		//If position is at the last node and it is free
+		i++;
+
+	if (i == pages)
+		return false;
+
+	return true;
 }
