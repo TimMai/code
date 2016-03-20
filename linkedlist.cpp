@@ -171,6 +171,7 @@ void insert2(node *&head, node *&last, std::string name)
 		}
 		else
 		{
+			//Infinite while loop after creating spot for one program
 			while (rerun)
 			{
 				node *temp = head;
